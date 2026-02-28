@@ -52,7 +52,9 @@ func TestChangeMoney(t *testing.T) {
 		MakeCassette(10, 2000, 10, true),
 	}
 	sum := int64(26000)
-	checkAns(t, inp, sum, ChangeMoney(inp, sum))
+	res, isOk := ChangeMoney(inp, sum)
+	assert.Equal(t, true, isOk)
+	checkAns(t, inp, sum, res)
 }
 
 func TestChangeMoney2(t *testing.T) {
@@ -62,7 +64,9 @@ func TestChangeMoney2(t *testing.T) {
 		MakeCassette(1555, 100, 11, true),
 	}
 	sum := int64(7300)
-	checkAns(t, inp, sum, ChangeMoney(inp, sum))
+	res, isOk := ChangeMoney(inp, sum)
+	assert.Equal(t, true, isOk)
+	checkAns(t, inp, sum, res)
 }
 
 func TestChangeMoney3(t *testing.T) {
@@ -72,7 +76,9 @@ func TestChangeMoney3(t *testing.T) {
 		MakeCassette(1555, 100, 1, true),
 	}
 	sum := int64(5100)
-	checkAns(t, inp, sum, ChangeMoney(inp, sum))
+	res, isOk := ChangeMoney(inp, sum)
+	assert.Equal(t, true, isOk)
+	checkAns(t, inp, sum, res)
 }
 
 func TestChangeMoney4(t *testing.T) {
@@ -82,8 +88,56 @@ func TestChangeMoney4(t *testing.T) {
 		MakeCassette(1555, 100, 1, true),
 	}
 	sum := int64(5126)
-	ans := ChangeMoney(inp, sum)
+	ans, isOk := ChangeMoney(inp, sum)
+	assert.Equal(t, false, isOk)
 	assert.Equal(t, 0, len(ans))
+}
+
+func TestChangeMoney5(t *testing.T) {
+	inp := []Cassette{
+		MakeCassette(11, 5000, 20, true),
+		MakeCassette(10, 2000, 5, true),
+	}
+	sum := int64(101000)
+	res, isOk := ChangeMoney(inp, sum)
+	assert.Equal(t, true, isOk)
+	checkAns(t, inp, sum, res)
+}
+
+func TestChangeMoney6(t *testing.T) {
+	inp := []Cassette{
+		MakeCassette(11, 5000, 18, true),
+		MakeCassette(10, 2000, 10, true),
+	}
+	sum := int64(101000)
+	res, isOk := ChangeMoney(inp, sum)
+	assert.Equal(t, true, isOk)
+	checkAns(t, inp, sum, res)
+}
+
+func TestChangeMoney7(t *testing.T) {
+	inp := []Cassette{
+		MakeCassette(11, 5000, 2, true),
+		MakeCassette(10, 2000, 10, true),
+		MakeCassette(90, 500, 10, true),
+		MakeCassette(80, 200, 10, true),
+	}
+	sum := int64(7100)
+	res, isOk := ChangeMoney(inp, sum)
+	assert.Equal(t, true, isOk)
+	checkAns(t, inp, sum, res)
+}
+
+func TestChangeMoney8(t *testing.T) {
+	inp := []Cassette{
+		MakeCassette(11, 5000, 2, true),
+		MakeCassette(10, 2000, 1, true),
+		MakeCassette(90, 1000, 1, true),
+	}
+	sum := int64(9000)
+	res, isOk := ChangeMoney(inp, sum)
+	assert.Equal(t, false, isOk)
+	assert.Equal(t, 0, len(res))
 }
 
 func BenchmarkChangeMoney(b *testing.B) {

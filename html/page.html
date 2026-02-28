@@ -285,7 +285,7 @@
         <div class="action-area">
             <div class="amount-input">
                 <div class="amount-field">
-                    <label for="amount">Сумма для выдачи (руб, без копеек):</label>
+                    <label for="amount">Сумма для выдачи (руб):</label>
                     <input type="number" id="amount" min="0" step="1" value="2500" placeholder="Введите сумму">
                 </div>
                 <button class="calculate-btn" onclick="calculate()">💰 Рассчитать</button>
@@ -302,17 +302,15 @@
                 </div>
             </div>
         </div>
-        <div class="footer-note">
-            * Алгоритм: жадный (от больших номиналов к меньшим) с учетом остатков и исправности кассет
-        </div>
     </div>
 
     <script>
         // Номиналы для выбора
-        const DENOMINATIONS = [100, 200, 500, 1000, 2000, 5000];
+        const nominalS = [100, 200, 500, 1000, 2000, 5000];
         
         // Текущее состояние кассет
         let cassettes = [];
+        let cassettesMap = new Map();
 
         // Инициализация при загрузке
         document.addEventListener('DOMContentLoaded', function() {
@@ -327,15 +325,19 @@
             // Сохраняем старые значения, если они были
             const oldCassettes = [...cassettes];
             cassettes = [];
+            cassettesMap = new Map();
             
             let html = '';
             for (let i = 0; i < count; i++) {
                 const oldData = oldCassettes[i] || {};
                 cassettes[i] = {
-                    denomination: oldData.denomination || 100,
-                    remaining: oldData.remaining || 0,
-                    isWorking: oldData.isWorking !== undefined ? oldData.isWorking : true
+                    id: i + 1,
+                    index: i + 1,
+                    nominal: oldData.nominal || 100,
+                    numOfBonds: oldData.numOfBonds || 0,
+                    isIntact: oldData.isIntact !== undefined ? oldData.isIntact : true
                 };
+                cassettesMap.set(cassettes[i].id, cassettes[i]);
                 
                 html += generateCassetteHTML(i, cassettes[i]);
             }
@@ -345,37 +347,37 @@
 
         // Генерация HTML для одной кассеты
         function generateCassetteHTML(index, data) {
-            const denomOptions = DENOMINATIONS.map(d => 
-                `<option value="${d}" ${data.denomination === d ? 'selected' : ''}>${d} руб</option>`
+            const denomOptions = nominalS.map(d => 
+                `<option value="${d}" ${data.nominal === d ? 'selected' : ''}>${d} руб</option>`
             ).join('');
 
             return `
                 <div class="cassette-card" id="cassette-${index}">
                     <div class="cassette-header">
                         <span class="cassette-title">Кассета ${index + 1}</span>
-                        <span class="status-badge ${data.isWorking ? 'status-working' : 'status-broken'}">
-                            ${data.isWorking ? '✓ Исправна' : '✗ Неисправна'}
+                        <span class="status-badge ${data.isIntact ? 'status-working' : 'status-broken'}">
+                            ${data.isIntact ? '✓ Исправна' : '✗ Неисправна'}
                         </span>
                     </div>
                     
                     <div class="cassette-field">
                         <label>Номинал:</label>
-                        <select onchange="updateCassette(${index}, 'denomination', this.value)">
+                        <select onchange="updateCassette(${index}, 'nominal', this.value)">
                             ${denomOptions}
                         </select>
                     </div>
                     
                     <div class="cassette-field">
                         <label>Остаток купюр:</label>
-                        <input type="number" min="0" step="1" value="${data.remaining}" 
-                               onchange="updateCassette(${index}, 'remaining', this.value)" 
+                        <input type="number" min="0" step="1" value="${data.numOfBonds}" 
+                               onchange="updateCassette(${index}, 'numOfBonds', this.value)" 
                                placeholder="Кол-во">
                     </div>
                     
                     <div class="status-toggle">
-                        <button type="button" class="status-btn ${data.isWorking ? 'active' : ''}" 
+                        <button type="button" class="status-btn ${data.isIntact ? 'active' : ''}" 
                                 onclick="setStatus(${index}, true)">Исправна</button>
-                        <button type="button" class="status-btn ${!data.isWorking ? 'active' : ''}" 
+                        <button type="button" class="status-btn ${!data.isIntact ? 'active' : ''}" 
                                 onclick="setStatus(${index}, false)">Неисправна</button>
                     </div>
                 </div>
@@ -386,10 +388,10 @@
         function updateCassette(index, field, value) {
             if (!cassettes[index]) return;
             
-            if (field === 'denomination') {
-                cassettes[index].denomination = parseInt(value);
-            } else if (field === 'remaining') {
-                cassettes[index].remaining = parseInt(value) || 0;
+            if (field === 'nominal') {
+                cassettes[index].nominal = parseInt(value);
+            } else if (field === 'numOfBonds') {
+                cassettes[index].numOfBonds = parseInt(value) || 0;
             }
             
             // Обновляем статус бейдж
@@ -397,16 +399,16 @@
         }
 
         // Установка статуса исправности
-        function setStatus(index, isWorking) {
+        function setStatus(index, isIntact) {
             if (!cassettes[index]) return;
             
-            cassettes[index].isWorking = isWorking;
+            cassettes[index].isIntact = isIntact;
             
             // Обновляем классы кнопок
             const card = document.getElementById(`cassette-${index}`);
             const buttons = card.querySelectorAll('.status-btn');
-            buttons[0].classList.toggle('active', isWorking);
-            buttons[1].classList.toggle('active', !isWorking);
+            buttons[0].classList.toggle('active', isIntact);
+            buttons[1].classList.toggle('active', !isIntact);
             
             // Обновляем статус бейдж
             updateStatusBadge(index);
@@ -416,7 +418,7 @@
         function updateStatusBadge(index) {
             const card = document.getElementById(`cassette-${index}`);
             const badge = card.querySelector('.status-badge');
-            if (cassettes[index].isWorking) {
+            if (cassettes[index].isIntact) {
                 badge.className = 'status-badge status-working';
                 badge.textContent = '✓ Исправна';
             } else {
@@ -440,61 +442,49 @@
             }
             
             // Собираем данные из кассет
-            const availableCassettes = cassettes
-                .map((c, index) => ({
-                    index: index + 1,
-                    denomination: c.denomination,
-                    available: c.isWorking ? c.remaining : 0,
-                    isWorking: c.isWorking
-                }))
-                .filter(c => c.isWorking && c.denomination > 0 && c.available > 0)
-                .sort((a, b) => b.denomination - a.denomination); // Сортировка по убыванию номинала
+            const reqData = {
+                cassettes: cassettes.map((c, index) => ({
+                        id: index + 1,
+                        nominal: c.nominal,
+                        numOfBonds: c.numOfBonds,
+                        isIntact: c.isIntact
+                    })),
+                sum: amount
+            }
             
-            if (availableCassettes.length === 0) {
+            if (reqData.cassettes.length === 0) {
                 showResult('error', 'Нет исправных кассет с купюрами');
                 document.getElementById('executionTime').textContent = 
-                    `${(performance.now() - startTime).toFixed(2)} мс`;
+                    `-- мс`;
                 return;
             }
             
-            // Жадный алгоритм выдачи
-            let remaining = amount;
-            const distribution = [];
-            
-            for (const cassette of availableCassettes) {
-                if (remaining <= 0) break;
-                
-                const denomination = cassette.denomination;
-                const maxNotes = cassette.available;
-                const neededNotes = Math.floor(remaining / denomination);
-                const usedNotes = Math.min(maxNotes, neededNotes);
-                
-                if (usedNotes > 0) {
-                    distribution.push({
-                        cassette: cassette.index,
-                        denomination: denomination,
-                        count: usedNotes,
-                        amount: usedNotes * denomination
-                    });
-                    remaining -= usedNotes * denomination;
+            const JsonData = JSON.stringify(reqData)
+            const req = new XMLHttpRequest()
+
+            req.open("POST", "/find-changing");
+            req.setRequestHeader("Content-Type", "application/json");
+            req.onload = () => {
+                if (req.status == 200) {
+                    console.log(req.status, " status ok");
+                    console.log(req.responseText);
+                    const resp = JSON.parse(req.responseText);
+                    if (resp.isFound === true) {
+                        showResult('success', resp.Changing, amount);
+                    } else {
+                        showResult('error', `Невозможно выдать сумму ${amount} руб.`, null);
+                    }
+
+                    document.getElementById('executionTime').textContent = `${resp.TimeChanging} мс`;
+                } else {
+
                 }
-            }
-            
-            const endTime = performance.now();
-            const executionTime = (endTime - startTime).toFixed(2);
-            
-            // Вывод результата
-            if (remaining === 0) {
-                showResult('success', distribution, amount);
-            } else {
-                showResult('error', `Невозможно выдать сумму ${amount} руб. Остаток: ${remaining} руб`, distribution);
-            }
-            
-            document.getElementById('executionTime').textContent = `${executionTime} мс`;
+            };
+            req.send(JsonData)
         }
 
         // Отображение результата
-        function showResult(type, data, distribution = null) {
+        function showResult(type, data) {
             const resultContent = document.getElementById('resultContent');
             
             if (type === 'error') {
@@ -510,12 +500,13 @@
                 let totalAmount = 0;
                 
                 for (const item of data) {
+                    const c = cassettesMap.get(item.id);
                     tableRows += `
                         <tr>
-                            <td>Кассета ${item.cassette}</td>
-                            <td>${item.denomination} руб</td>
+                            <td>Кассета ${c.index}</td>
+                            <td>${c.nominal} руб</td>
                             <td>${item.count} шт</td>
-                            <td>${item.amount} руб</td>
+                            <td>${item.count * c.nominal} руб</td>
                         </tr>
                     `;
                     totalAmount += item.amount;
