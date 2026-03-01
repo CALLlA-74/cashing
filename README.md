@@ -1,0 +1,7 @@
+1. Входная точка проект -- [./cmd/main.go](https://github.com/CALLlA-74/cashing/blob/master/cmd/main.go) Для запуска сервиса вызвать:
+```
+go run ./cmd/main.go
+```
+
+2. Реализация алгоритма описана в модуле [./pkg/changing_money](https://github.com/CALLlA-74/cashing/tree/master/pkg/changing_money)
+3. Для получения результата с затраченным временем на выполнение лучше вызывать через метод ChangeMoney() в [./internal/domain/usecases.go](https://github.com/CALLlA-74/cashing/blob/master/internal/domain/usecases.go)
