@@ -3,5 +3,6 @@
 go run ./cmd/main.go
 ```
 (сервер будет развернут на http://localhost:8080)
+
 2. Реализация алгоритма описана в модуле [./pkg/changing_money](https://github.com/CALLlA-74/cashing/tree/master/pkg/changing_money)
 3. Для получения результата с затраченным временем на выполнение лучше вызывать через метод ChangeMoney() в [./internal/domain/usecases.go](https://github.com/CALLlA-74/cashing/blob/master/internal/domain/usecases.go)
