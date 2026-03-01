@@ -1,6 +1,8 @@
 package domain
 
 import (
+	"errors"
+	"github.com/CALLlA-74/cashing/internal/domain/Cassette/dto"
 	changingMoney "github.com/CALLlA-74/cashing/pkg/changing_money"
 	"time"
 )
@@ -11,30 +13,25 @@ func NewUC() *ChangingMoneyUC {
 	return &ChangingMoneyUC{}
 }
 
-func (uc *ChangingMoneyUC) ChangeMoney(req ChangeMoneyReq) (ChangingResult, error) {
-	cass := uc.mapCassettes(req.Cassettes)
-	timeStart := time.Time{}.UnixMilli()
-	result, isFound := changingMoney.ChangeMoney(cass, req.Sum)
+func (uc *ChangingMoneyUC) ChangeMoney(req dto.ChangeMoneyReq) (dto.ChangingResult, error) {
+	cass, sum := dto.ToDomain(req)
+	if cass == nil || sum == -1 {
+		return dto.ChangingResult{}, errors.New("некорректные значения")
+	}
+
+	timeStart := time.Now().UnixMilli()
+	result := changingMoney.ChangeMoney(cass, sum)
 	timeMillis := time.Now().UnixMilli() - timeStart
-	return ChangingResult{
+	return dto.ChangingResult{
 		Changing:     uc.mapResult(result),
 		TimeChanging: timeMillis,
-		IsFound:      isFound,
 	}, nil
 }
 
-func (uc *ChangingMoneyUC) mapResult(mp map[int]int64) []Pair {
-	ans := make([]Pair, 0, len(mp))
+func (uc *ChangingMoneyUC) mapResult(mp map[int]int64) []dto.Pair {
+	ans := make([]dto.Pair, 0, len(mp))
 	for k, v := range mp {
-		ans = append(ans, Pair{k, v})
+		ans = append(ans, dto.Pair{k, v})
 	}
 	return ans
-}
-
-func (uc *ChangingMoneyUC) mapCassettes(cass []Cassette) []changingMoney.Cassette {
-	res := make([]changingMoney.Cassette, 0, len(cass))
-	for _, c := range cass {
-		res = append(res, c)
-	}
-	return res
 }

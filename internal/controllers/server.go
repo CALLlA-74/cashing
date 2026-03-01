@@ -2,12 +2,12 @@ package controllers
 
 import (
 	"github.com/CALLlA-74/cashing/internal/config"
-	"github.com/CALLlA-74/cashing/internal/domain"
+	"github.com/CALLlA-74/cashing/internal/domain/Cassette/dto"
 )
 import "github.com/gin-gonic/gin"
 
 type ChangerUC interface {
-	ChangeMoney(req domain.ChangeMoneyReq) (domain.ChangingResult, error)
+	ChangeMoney(req dto.ChangeMoneyReq) (dto.ChangingResult, error)
 }
 
 type Server struct {

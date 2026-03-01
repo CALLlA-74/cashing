@@ -445,9 +445,9 @@
             const reqData = {
                 cassettes: cassettes.map((c, index) => ({
                         id: index + 1,
+                        isIntact: c.isIntact,
                         nominal: c.nominal,
                         numOfBonds: c.numOfBonds,
-                        isIntact: c.isIntact
                     })),
                 sum: amount
             }
@@ -461,23 +461,28 @@
             
             const JsonData = JSON.stringify(reqData)
             const req = new XMLHttpRequest()
+            console.debug(JsonData);
 
             req.open("POST", "/find-changing");
             req.setRequestHeader("Content-Type", "application/json");
             req.onload = () => {
                 if (req.status == 200) {
-                    console.log(req.status, " status ok");
-                    console.log(req.responseText);
+                    console.debug(req.status, " status ok");
+                    console.debug(req.responseText);
                     const resp = JSON.parse(req.responseText);
-                    if (resp.isFound === true) {
-                        showResult('success', resp.Changing, amount);
+                    if (resp.changing.length > 0) {
+                        showResult('success', resp.changing, amount);
                     } else {
                         showResult('error', `Невозможно выдать сумму ${amount} руб.`, null);
                     }
 
-                    document.getElementById('executionTime').textContent = `${resp.TimeChanging} мс`;
+                    document.getElementById('executionTime').textContent = `${resp.time} мс`;
+                } else if (req.status == 500) {
+                    showResult('error', `Некорректные значения.`, null);
+                    document.getElementById('executionTime').textContent = `-- мс`;
                 } else {
-
+                    showResult('error', `Сервер не доступен.`, null);
+                    document.getElementById('executionTime').textContent = `-- мс`;
                 }
             };
             req.send(JsonData)
@@ -509,7 +514,7 @@
                             <td>${item.count * c.nominal} руб</td>
                         </tr>
                     `;
-                    totalAmount += item.amount;
+                    totalAmount += item.count * c.nominal;
                 }
                 
                 resultContent.innerHTML = `

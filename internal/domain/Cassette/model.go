@@ -1,10 +1,19 @@
-package domain
+package Cassette
 
 type Cassette struct {
 	id         int
 	isIntact   bool
 	nominal    int64
 	numOfBonds int64
+}
+
+func MakeCassette(id int, isIntact bool, nominal, numOfBonds int64) Cassette {
+	return Cassette{
+		id:         id,
+		isIntact:   isIntact,
+		nominal:    nominal,
+		numOfBonds: numOfBonds,
+	}
 }
 
 func (c Cassette) GetId() int {
